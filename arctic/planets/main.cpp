@@ -2,6 +2,8 @@
 #include "engine/unicode.h"
 using namespace arctic;
 
+bool g_debugFrames = true;
+
 Si32 g_ink = 8;
 Vec2Si32 g_pos(0, 0);
 Vec2Si32 g_text_pos(0, 0);
@@ -198,6 +200,7 @@ double Number(std::string text) {
   return result * sign;
 }
 
+// Planets
 constexpr int planet_count = 3;
 int planet_ships[planet_count] = {0}; // кол-во кораблей на планете
 int planet_type[planet_count] = {0}; // 0 - обычная, 1 - кольцевая
@@ -205,6 +208,7 @@ int planet_owner[planet_count] = {0}; // 0 - не занята, 1 - вы, 2 - в
 int planet_x[planet_count] = {0};
 int planet_y[planet_count] = {0};
 
+// Ships
 constexpr int ship_count = 1000;
 int ship_fly_x[ship_count] = {0};
 int ship_fly_y[ship_count] = {0};
@@ -212,6 +216,13 @@ int ship_owner[ship_count] = {0}; // 0 - нет, 1 - вы, 2 - враг
 int ship_x[ship_count] = {0};
 int ship_y[ship_count] = {0};
 int t = 0;
+
+// Selection
+int sel_x1 = 100;
+int sel_y1 = 100;
+int sel_x2 = 200;
+int sel_y2 = 200;
+
 
 void EasyMain() {
   ResizeScreen(800, 500);
@@ -237,8 +248,19 @@ void EasyMain() {
   ship_y[1] = 500 / 2 + 100;  
 
   while (!IsKeyDownward(kKeyEscape)) {
+    // Selection
+    sel_x1 = MousePos().x;
+    sel_y1 = MousePos().y;
+    sel_x2 = MousePos().x + 100;
+    sel_y2 = MousePos().y + 100;
+
     // Rendering
     Clear(Rgba(0xff110000));
+    DrawLine(Vec2Si32(sel_x1, sel_y1), Vec2Si32(sel_x1, sel_y1 + 100), Rgba(0, 0, 255));
+    DrawLine(Vec2Si32(sel_x1, sel_y1 + 100), Vec2Si32(sel_x2, sel_y2), Rgba(0, 0, 255));
+    DrawLine(Vec2Si32(sel_x2, sel_y2), Vec2Si32(sel_x2, sel_y2 - 100), Rgba(0, 0, 255));
+    DrawLine(Vec2Si32(sel_x2, sel_y2 - 100), Vec2Si32(sel_x1, sel_y1), Rgba(0, 0, 255));
+  
     for (int i = 0; i < planet_count; i++) {
       if (planet_owner[i] == 0) {
         Ink(9);
@@ -264,8 +286,13 @@ void EasyMain() {
       Plot(ship_x[i]-1, ship_y[i]);
       Plot(ship_x[i], ship_y[i]-1);
     }
+    if (g_debugFrames) {
+      Ink(8);
+      Print(50, 50,"Кадр");
+      Print(50 + 40, 50,t);
+    }
     ShowFrame();
-    Sleep(0.32);
+    Sleep(0.032);
 
     // Physics
     for (int i = 0; i < planet_count; i++) {
@@ -280,6 +307,7 @@ void EasyMain() {
             ship_owner[j] = planet_owner[i];
             ship_x[j] = planet_x[i] + Random32(-30, 30);
             ship_y[j] = planet_y[i] + Random32(-30, 30);
+            break;
           }
         }
       }
